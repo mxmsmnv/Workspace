@@ -51,6 +51,27 @@ install a site, configure a reverse proxy, create users or enable automatic
 startup. Do not start a duplicate listener. The router is for local development,
 not public hosting.
 
+## Local login E2E
+
+`python3 tests/login-e2e.py` exercises the real local HTTP stack, native CSRF
+fields, cookies and redirects. Set `WORKSPACE_E2E_URL` to an isolated loopback
+site with the prepared `/demo/` fixture. Optionally set
+`WORKSPACE_E2E_ADMIN_PATH` (default `/workspace-admin/`) and supply
+`WORKSPACE_E2E_USER` / `WORKSPACE_E2E_PASSWORD` through a private environment
+provider to include native administrator login. Never commit or print these
+values. Missing credentials explicitly skip that check.
+
+The demo endpoint belongs to the isolated site, not the distributed module.
+It must be loopback-only, send `Cache-Control: no-store` and redirect with 302;
+a permanent 301 can be cached by the browser and bypass later demo logins.
+Use a fresh query string once if an old permanent redirect is already cached.
+Do not disable session fingerprints or CSRF to make the tests pass.
+
+The checks cover login persistence, application home pages and refresh,
+logout revocation and demo re-entry. They do not automate a browser, JavaScript,
+second-factor authentication or every application workflow; native browser
+verification remains a separate check.
+
 ## Source layout
 
 - `Workspace.module.php`: module metadata and hook wiring.
