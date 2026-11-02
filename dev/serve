@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+site_dir="${WORKSPACE_SITE_ROOT:?Set WORKSPACE_SITE_ROOT to the isolated demo site}"
+preview_port="${WORKSPACE_PORT:-8191}"
+[[ "$preview_port" =~ ^[0-9]+$ ]] || { echo 'Invalid port' >&2; exit 2; }
+[[ -f "$site_dir/index.php" ]] || { echo 'No prepared site at WORKSPACE_SITE_ROOT' >&2; exit 2; }
+package_dir="$(cd "$(dirname "$0")/.." && pwd)"
+exec php -S "127.0.0.1:$preview_port" -t "$site_dir" "$package_dir/dev/router.php"

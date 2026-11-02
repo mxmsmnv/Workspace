@@ -1,0 +1,44 @@
+/* Scoped to Workspace settings, also usable in standard administration. */
+.ws-settings { width: 100%; max-width: 840px; }
+.ws-settings h1 { font-size: 1.875rem; font-weight: 650; letter-spacing: -.8px; margin: 0 0 16px; }
+.ws-settings > p { color: var(--ws-muted, #697386); line-height: 1.7; }
+.ws-settings form { margin-top: 26px; }
+.ws-interface-option { display: flex; align-items: flex-start; gap: 14px; margin: 0 0 14px; padding: 20px; border: 1px solid var(--ws-line, #d9dfe3); border-radius: 3px; background: var(--ws-surface, #fff); cursor: pointer; }
+.ws-interface-option:has(input:checked) { border-color: var(--ws-accent, #3469dc); }
+.ws-interface-option > input { flex: none; margin-top: 4px; }
+.ws-interface-option > span { display: grid; gap: 5px; }
+.ws-interface-option strong { color: var(--ws-text, #172033); font-size: 0.9375rem; }
+.ws-interface-option span span { color: var(--ws-muted, #697386); font-size: 0.8125rem; }
+.ws-settings-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+.ws-admin-shortcut { margin: -18px 0 24px !important; }
+
+.ws-settings .uk-button { border-radius: 3px; }
+/* Account switching and the native ProcessLogin form share one restrained layout. */
+.ws-access{max-width:440px;margin:32px auto 48px}.ws-access-back{display:inline-block;margin-bottom:22px;font-size:0.8125rem;color:var(--ws-muted)}
+.ws-access-card,.ws-login-card{width:100%;padding:36px;background:var(--ws-surface);border:1px solid var(--ws-line);border-radius:3px;box-shadow:none}
+.ws-access-heading{text-align:left}.ws-access-symbol{width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;color:var(--ws-accent);background:var(--ws-bg);border:1px solid var(--ws-line);border-radius:3px}.ws-access-symbol .ws-icon{width:21px;height:21px}.ws-access-heading .ws-eyebrow{margin:26px 0 12px;font-size:0.625rem;letter-spacing:1.5px;color:var(--ws-muted)}.ws-access-heading h1{font-size:1.75rem;line-height:1.22;font-weight:620;letter-spacing:-.8px;margin:0 0 12px;color:var(--ws-text)}.ws-access-heading>p:last-child{font-size:0.875rem;line-height:1.7;color:var(--ws-muted);margin:0 0 28px}
+.ws-access-account{display:grid;gap:6px;padding:16px;background:var(--ws-bg);border:1px solid var(--ws-line);border-radius:3px;font-size:0.8125rem}.ws-access-account span{font-size:0.6875rem;color:var(--ws-muted)}.ws-access-account strong{color:var(--ws-text);overflow-wrap:anywhere}.ws-access-explanation{font-size:0.8125rem;color:var(--ws-muted);line-height:1.7;margin:20px 0}.ws-access form{margin:0}.ws-access .uk-button{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;min-height:46px;text-transform:none;border-radius:3px}.ws-access .uk-button .ws-icon{width:16px;height:16px}.ws-access-footnote{color:var(--ws-muted);font-size:0.6875rem;margin:20px 0 0}
+body.ws-login-screen #main.ws-login-main{position:static;display:flex;align-items:center;justify-content:center;max-width:none!important;width:100%;min-height:100dvh;height:auto;margin:0!important;padding:48px 20px!important;background:var(--ws-bg);border:0;box-shadow:none}
+body.ws-login-screen .ws-login-card{flex:none;max-width:440px;margin:0;display:block;min-height:0;height:auto}
+body.ws-login-screen #pw-content-body{padding:0;margin:0;text-align:left;min-height:0;height:auto;background:transparent;border:0;box-shadow:none}
+body.ws-login-screen #ProcessLoginForm{width:100%;max-width:none;padding:0;margin:0!important;text-align:left;background:transparent;border:0;box-shadow:none}
+body.ws-login-screen #ProcessLoginForm .Inputfields{display:block;margin:0!important;padding:0;min-height:0}
+body.ws-login-screen #ProcessLoginForm .Inputfield{width:100%!important;max-width:none!important;float:none;background:transparent;border:0;outline:0;min-height:0;padding:0;margin:0 0 20px!important}
+body.ws-login-screen #ProcessLoginForm .InputfieldHidden{display:none!important}
+body.ws-login-screen #ProcessLoginForm .InputfieldHeader{display:block;text-align:left;padding:0 0 8px!important;margin:0!important;background:transparent;border:0;font-size:0.8125rem;font-weight:550;color:var(--ws-text)}
+body.ws-login-screen #ProcessLoginForm .InputfieldContent{padding:0!important;border:0;background:transparent;min-height:0}
+body.ws-login-screen #ProcessLoginForm input:not([type=hidden]){width:100%!important;max-width:none!important;min-height:46px;padding:10px 12px;text-align:left;background:var(--ws-input);color:var(--ws-text);border:1px solid var(--ws-line);border-radius:3px;font:inherit;box-shadow:none}
+body.ws-login-screen #ProcessLoginForm #wrap_Inputfield_login_submit{display:block!important;width:100%!important;margin:24px 0 0!important}
+body.ws-login-screen #ProcessLoginForm button[type=submit]{display:block;width:100%!important;min-height:46px;margin:0!important;border:0;border-radius:3px;background:var(--ws-accent);color:var(--ws-on-accent);font-size:0.875rem;box-shadow:none}
+body.ws-login-screen #ProcessLoginForm input:focus-visible{outline:2px solid var(--ws-accent);outline-offset:2px}
+body.ws-login-screen .pw-login-links{font-size:0.75rem;text-align:left;margin:20px 0 0}body.ws-login-screen .pw-login-links a[href="/"]{display:none}body.ws-login-screen .pw-notices{font-size:0.8125rem;line-height:1.6;margin:0 0 20px}
+@media(max-width:520px){.ws-access{margin:8px auto 24px}.ws-access-card,.ws-login-card{padding:28px 22px}.ws-access-heading h1{font-size:1.5625rem}body.ws-login-screen #main.ws-login-main{padding:24px 16px!important}}
+/* Neutralize Uikit's modern guest card on html/body, then style our single card. */
+html.pw:has(body.ws-login-screen){display:block!important;min-height:100%;background:var(--ws-bg)}
+html.pw body.ProcessLogin.ws-login-screen:not(:has(#tools-toggle)){display:block!important;position:static;width:100%!important;min-width:0!important;max-width:none!important;height:auto;min-height:100dvh;max-height:none!important;padding:0!important;margin:0!important;border:0!important;background:var(--ws-bg);box-shadow:none}
+html.pw body.ProcessLogin.ws-login-screen:not(:has(#tools-toggle)) > #main.ws-login-main{display:flex;max-width:none!important;min-height:100dvh;padding:48px 20px!important;margin:0!important}
+html.pw body.ProcessLogin.ws-login-screen:not(:has(#tools-toggle)) #ProcessLoginForm > .Inputfields{width:100%;padding:0;background:transparent}
+html.pw body.ProcessLogin.ws-login-screen:not(:has(#tools-toggle)) #ProcessLoginForm :is(#wrap_login_name,#wrap_login_pass,#wrap_Inputfield_login_submit){width:100%!important;padding:0;margin:0 0 20px!important}
+html.pw body.ProcessLogin.ws-login-screen:not(:has(#tools-toggle)) #ProcessLoginForm input:focus-visible{outline:2px solid var(--ws-accent);outline-offset:2px}
+html.pw body.ProcessLogin.ws-login-screen:not(:has(#tools-toggle)) #ProcessLoginForm{width:100%!important;max-width:none!important;margin:0!important}
+html.pw body.ProcessLogin.ws-login-screen:not(:has(#tools-toggle)) #ProcessLoginForm > .Inputfields{width:100%!important}

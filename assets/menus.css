@@ -1,0 +1,91 @@
+/* Header popovers: square app tiles on desktop, a single swipeable row on phones. */
+body.ws-shell .ws-switcher-panel {
+    width:22rem;max-width:calc(100vw - 32px);padding:.65rem;
+    max-height:calc(100dvh - var(--ws-menu-top,100px) - 16px);
+    overflow-x:hidden;overflow-y:auto;
+}
+body.ws-shell .ws-switcher-panel .ws-switcher-home {
+    display:flex;align-items:center;gap:.65rem;padding:.6rem .5rem;
+    margin:0 0 .65rem;border:0;border-bottom:1px solid var(--ws-line);
+    padding-bottom:.85rem;font-size:.8125rem;line-height:1.4;
+    background:transparent;
+}
+.ws-menu-count {margin-left:auto;color:var(--ws-muted);font-size:.6875rem;font-variant-numeric:tabular-nums;}
+body.ws-shell .ws-switcher-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem;}
+body.ws-shell .ws-switcher-grid .ws-switcher-app {
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:.65rem;aspect-ratio:1;min-width:0;padding:.65rem .35rem;
+    border:1px solid transparent;border-radius:3px;margin:0;
+    font-size:.8125rem;font-weight:550;line-height:1.35;text-align:center;
+    background:transparent;color:var(--ws-text)!important;overflow-wrap:anywhere;
+}
+body.ws-shell .ws-switcher-grid .ws-switcher-app.is-active {
+    background:var(--ws-hover);border-color:var(--ws-accent);
+}
+body.ws-shell .ws-switcher-panel .ws-mini-icon {
+    display:grid;place-items:center;flex:none;width:2.4rem;height:2.4rem;
+    border-radius:3px;background:color-mix(in srgb,var(--app-color,var(--ws-accent)) 9%,transparent);
+}
+body.ws-shell .ws-switcher-panel .ws-mini-icon .ws-icon {width:1.35rem;height:1.35rem;margin:0;}
+body.ws-shell .ws-switcher-panel .ws-switcher-home .ws-mini-icon {width:1.8rem;height:1.8rem;color:var(--ws-accent);background:transparent;}
+body.ws-shell .ws-switcher-panel a:focus-visible {outline-offset:-3px;}
+body.ws-shell .ws-account-panel {width:18rem;padding:.5rem;}
+body.ws-shell .ws-account-identity {gap:.7rem;padding:.65rem .6rem .85rem;margin:0 0 .35rem;border-bottom:1px solid var(--ws-line);}
+body.ws-shell .ws-account-identity>div {min-width:0;}
+body.ws-shell .ws-account-identity :is(strong,.ws-account-email) {padding:0;line-height:1.45;overflow-wrap:anywhere;}
+body.ws-shell .ws-account-identity strong {font-size:.8125rem;}
+body.ws-shell .ws-account-email {font-size:.6875rem;margin:.1rem 0 0;}
+body.ws-shell .ws-account-panel :is(a,button) {
+    display:flex;width:100%;gap:.7rem;padding:.65rem .6rem;min-height:2.65rem;
+    border:0;border-radius:3px;text-align:left;color:var(--ws-text);font-size:.8125rem;
+    background:transparent!important;
+}
+body.ws-shell .ws-account-panel :is(a,button)>.ws-icon {width:1.1rem;height:1.1rem;flex:none;color:var(--ws-muted);}
+body.ws-shell .ws-account-panel .ws-signout {margin-top:.35rem;border-top:1px solid var(--ws-line);padding-top:.85rem;}
+body.ws-shell .ws-account-panel .ws-signout small {font-size:.6875rem;margin-top:.1rem;line-height:1.4;}
+@media(max-width:640px) {
+    body.ws-shell .ws-header {gap:8px;padding-inline:12px;}
+    body.ws-shell .ws-header-divider {display:none;}
+    body.ws-shell .ws-header .ws-brand {gap:7px;font-size:.9375rem;}
+    body.ws-shell .ws-header .ws-account-name {display:none;}
+    body.ws-shell .ws-header .ws-switcher summary {gap:5px;padding:6px;font-size:.75rem;}
+    body.ws-shell .ws-header .ws-switcher summary>span:not(.ws-current-icon) {max-width:5.5rem;}
+    body.ws-shell .ws-header .ws-current-icon {display:none;}
+    body.ws-shell .ws-switcher-panel {
+        position:fixed;top:var(--ws-menu-top,76px);left:12px;right:12px;
+        width:auto;max-width:none;padding:.6rem;overflow:hidden;
+    }
+    body.ws-shell .ws-switcher-grid {
+        display:flex;flex-wrap:nowrap;gap:.4rem;overflow-x:auto;overflow-y:hidden;
+        overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:.2rem;
+        padding:.2rem .2rem .6rem;touch-action:pan-x;scrollbar-width:thin;
+    }
+    body.ws-shell .ws-switcher-grid .ws-switcher-app {
+        flex:0 0 5.25rem;width:5.25rem;min-height:5.25rem;scroll-snap-align:start;
+        font-size:.75rem;gap:.5rem;
+    }
+    body.ws-shell .ws-account-panel {position:fixed;top:var(--ws-menu-top,76px);right:12px;max-width:calc(100vw - 24px);}
+}
+/* Fixed mobile panels must not escape the browser's closed-details rendering. */
+body.ws-shell .ws-popover:not([open])>:is(.ws-switcher-panel,.ws-account-panel){display:none!important;}
+body.ws-shell .ws-header .ws-account-panel button.ws-appearance-trigger{border:0!important;padding:.65rem .6rem!important;justify-content:flex-start;}
+/* Native Font Awesome uses glyphs, sized with text rather than SVG geometry. */
+body.ws-shell .ws-icon,body.ws-login-screen .ws-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:1em;line-height:1;vertical-align:middle;font-style:normal;}
+body.ws-shell .ws-mark .ws-icon{font-size:1.2rem;}
+body.ws-shell .ws-current-icon .ws-icon{font-size:1rem;}
+body.ws-shell .ws-app-icon .ws-icon{font-size:1.35rem;}
+body.ws-shell .ws-search>.ws-icon{position:absolute;left:.875rem;width:1.1rem;height:1.1rem;pointer-events:none;}
+body.ws-shell .ws-mini-icon .ws-icon{font-size:1.25rem;}
+body.ws-shell .ws-pin .ws-icon{font-size:.9rem;}
+body.ws-shell .ws-admin-entry .ws-icon{font-size:1rem;}
+:is(body.ws-shell,body.ws-login-screen) .ws-access-symbol .ws-icon{font-size:1.25rem;}
+body.ws-shell .ws-pin .ws-star-filled{display:none;}
+body.ws-shell .ws-pin[aria-pressed=true] .ws-star-outline{display:none;}
+body.ws-shell .ws-pin[aria-pressed=true] .ws-star-filled{display:block;}
+
+/* Keep the account action's text independent of legacy application button styling. */
+body.ws-shell .ws-header .ws-account-panel .ws-appearance-trigger .ws-action-label {
+    display:block!important;visibility:visible!important;opacity:1!important;
+    color:var(--ws-text)!important;font:inherit;line-height:1.4;text-indent:0;
+    white-space:normal;overflow-wrap:anywhere;min-width:0;text-align:start;
+}
