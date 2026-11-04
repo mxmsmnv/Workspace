@@ -4,7 +4,7 @@
 class ProcessWorkspace extends Process {
     public static function getModuleInfo(): array {
         return [
-            'title' => 'Workspace', 'version' => 100, 'author' => 'Maxim Semenov',
+            'title' => 'Workspace', 'version' => 101, 'author' => 'Maxim Semenov',
             'summary' => 'A focused home for your business applications.',
             'requires' => ['Workspace'], 'permission' => 'workspace-use',
             'icon' => 'th-large', 'page' => ['name' => 'workspace', 'title' => 'Workspace'],

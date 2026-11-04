@@ -1,6 +1,6 @@
 # Shared implementation contract
 
-Release: 1.0.0; all three ProcessWire module metadata versions: 100.
+Release: 1.0.1; all three ProcessWire module metadata versions: 101.
 
 Workspace.module.php: `Workspace extends WireData implements Module`, metadata and hook wiring. Logic is composed from `src/Registry/WorkspaceRegistryTrait.php`, `src/Access/WorkspaceAccessTrait.php` and `src/Presentation/WorkspaceShellTrait.php`. Methods `apps(): array`, `allApps(): array`, `currentApp(): ?array`, `homeUrl(): string`, `assetUrl(string $file): string`, `isOperator(): bool`, `isShellPage(): bool`, `title(): string`. Each accessible app row: id, title, description, icon (core Font Awesome name or Workspace alias), color, process, url, sections (array of label/url). `allApps` descriptors may include installed/available flags but launch grid uses apps only. Hookable `getAppDefinitions()` supplies descriptors; validated definitions feed all launch/navigation/guard consumers. Six compatibility defaults live in integrations/built-in.php; third-party registration follows docs/application-registration.md. Core Processes cannot be registered. Resolve actual Process page through PW, native permissions AND page access.
 

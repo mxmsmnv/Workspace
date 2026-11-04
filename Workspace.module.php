@@ -18,7 +18,7 @@ class Workspace extends WireData implements Module {
         return [
             'title' => 'Workspace',
             'summary' => 'Extensible, permission-aware application workspace.',
-            'version' => 100,
+            'version' => 101,
             'author' => 'Maxim Semenov',
             'icon' => 'th-large',
             'singular' => true,

@@ -4,7 +4,7 @@
 class AdminThemeWorkspace extends AdminThemeUikit {
     public static function getModuleInfo() {
         return [
-            'title' => 'Workspace', 'version' => 100,
+            'title' => 'Workspace', 'version' => 101,
             'summary' => 'An application workspace with a shared launcher and native forms.',
             'author' => 'Maxim Semenov', 'icon' => 'th-large',
             'autoload' => 'template=admin',

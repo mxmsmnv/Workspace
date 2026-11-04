@@ -6,7 +6,7 @@ Workspace brings independently installed ProcessWire applications into one focus
 
 It is made for sites where people work in business applications without needing the full technical administration interface.
 
-**Version:** 1.0.0 (ProcessWire module version 100)<br>
+**Version:** 1.0.1 (ProcessWire module version 101)<br>
 **Author:** Maxim Semenov<br>
 **Website:** [smnv.org](https://smnv.org)<br>
 **Email:** [maxim@smnv.org](mailto:maxim@smnv.org)

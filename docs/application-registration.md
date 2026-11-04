@@ -49,7 +49,7 @@ Generic `settings`, `config` and `configuration` routes remain superuser-only fo
 
 The shell supplies launch cards, Favorites, current-app selection, navigation and shared appearance automatically. A new app's custom forms, scripts, embedded documents and editors still need compatibility testing. The provided example registers nothing unless you deliberately copy/use it and install its real Process.
 
-This API is included in Workspace 1.0.0 (ProcessWire module version 100), licensed under MIT. Publishing the repository or listing the module is a separate distribution step.
+This API has been available since Workspace 1.0.0 (ProcessWire module version 100) and remains available in 1.0.1 (101), licensed under MIT.
 
 ## Localization
 
