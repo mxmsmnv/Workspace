@@ -5,7 +5,9 @@ Uses real cookies, CSRF tokens, native login POSTs and redirects. No browser or
 production data is used. Credentials come only from the process environment.
 """
 import http.cookiejar
+import json
 import os
+import re
 import socket
 import unittest
 import urllib.error
@@ -95,7 +97,16 @@ class LoginE2E(unittest.TestCase):
         self.assertTrue(any(name.startswith('TOKEN') for name in fields), 'Native CSRF token missing')
         fields.update(login_name=user, login_pass=password, login_submit=fields.get('login_submit') or 'Login')
         self.assert_authenticated(self.request(self.admin + 'login/', fields)[2])
-        self.assert_authenticated(self.request(self.admin + 'workspace/')[2])
+        html = self.request(self.admin + 'workspace/')[2]
+        self.assert_authenticated(html)
+        match = re.search(r'var ProcessWire = \{ config: (.*?) \};', html, re.S)
+        self.assertIsNotNone(match, 'Native JavaScript configuration is missing')
+        configuration = json.loads(match.group(1))
+        self.assertEqual(configuration.get('urls', {}).get('admin'), self.admin)
+        # PW 3.0.275+ exports the icon configuration consumed by its core JS.
+        if os.environ.get('WORKSPACE_E2E_CORE_ICONS') == '1':
+            self.assertIn('version', configuration.get('adminIcons', {}))
+        self.assertEqual(len(re.findall(r'var ProcessWire =', html)), 1)
         self.request(self.admin + 'login/logout/')
         self.assertIn('id="ProcessLoginForm"', self.request(self.admin + 'workspace/')[2])
 

@@ -32,6 +32,12 @@ Optional compatibility descriptors are included for Kontor, Mercato, Mailbox, Di
 
 Other applications can register without editing Workspace. Add a hook in `site/init.php` or an autoload module's `init()`:
 
+On a plain ProcessWire installation, the launcher is initially empty: Workspace
+does not include business applications. The example below assumes an existing,
+separately installed **ProcessPlanner** module with its own admin Process page.
+Replace it with your real module class; copying the hook alone does not create
+an application or its page.
+
 ```php
 $wire->addHookAfter('Workspace::getAppDefinitions', function($event) {
     $apps = $event->return;
@@ -95,6 +101,10 @@ Superusers retain technical maintenance access. The interface settings page chan
 ## Compatibility
 
 Workspace is a shell, not a replacement editor for every module. Its launcher, appearance dialog and six integration home screens have been reviewed in desktop Chrome, including text scale at 125%. Every editor, mobile viewport and third-party action still needs site-specific testing.
+
+Sites with an older `site/templates/admin.php` that loads
+`$config->paths->adminTemplates . 'controller.php'` are supported through a
+compatibility entry point delegating to the native core admin controller.
 
 Some existing Mercato actions lead to native page editing; operators cannot use those routes until dedicated business editors are integrated. Custom query-string actions and separate admin pages require the application's own authorization. There is no bundled production backend, mail delivery setup, payment configuration or sample business data.
 

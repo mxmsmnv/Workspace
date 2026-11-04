@@ -2,6 +2,8 @@
 
 // Copy this registration into site/init.php, or register the same hook in an
 // autoload module's init(). Do not edit Workspace's built-in descriptors.
+// ProcessPlanner is a placeholder: install your real Process and its admin
+// page first, then replace this class name. This hook creates neither.
 $wire->addHookAfter('Workspace::getAppDefinitions', static function(HookEvent $event): void {
     $apps = $event->return;
     $apps[] = [
@@ -9,7 +11,7 @@ $wire->addHookAfter('Workspace::getAppDefinitions', static function(HookEvent $e
         'title' => __('Planner', __FILE__),
         'description' => __('Projects and schedules.', __FILE__),
         'process' => 'ProcessPlanner',
-        // 'module' => __('Planner', __FILE__), // Optional separate provider; defaults to process.
+        // 'module' => 'Planner', // Optional provider class; never translate class names.
         'icon' => 'briefcase',
         'color' => '#2563eb',
         'navigation' => [

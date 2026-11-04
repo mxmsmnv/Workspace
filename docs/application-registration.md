@@ -2,6 +2,27 @@
 
 Workspace is an extensible shell for independently installed ProcessWire **site Process modules**. The six original integrations are compatibility defaults in `integrations/built-in.php`, not a closed registry or required dependencies. Third-party apps can contribute through the native hook **`Workspace::getAppDefinitions`** without changing Workspace files.
 
+## Before copying the example
+
+An empty launcher on a plain ProcessWire site is expected. Workspace does not
+install the six business applications, and `ProcessPlanner` in the example is
+a placeholder, not a module shipped with Workspace.
+
+To connect an existing application:
+
+1. Install its real site Process module and confirm its native admin page works.
+2. Replace `ProcessPlanner` with that module's actual Process class. If its
+   provider is a separate module, set `module` to the provider's class name.
+3. Confirm a published admin page under your admin root has that Process assigned.
+4. Register the hook, then reload Workspace as a superuser first. For operators,
+   also grant `workspace-use`, the Process permission and native page access.
+
+Core admin tools, ordinary front-end pages and arbitrary external links are
+not supported application registrations. A hook describes an existing site
+Process; it does not create one.
+
+## Registration contract
+
 Register an after-hook from an autoload module's `init()` or `site/init.php`. Registration must happen before the admin controller guard runs; `ready()` can be too late. See [the complete registration example](../examples/register-app.php). In an autoload module, use `$this->addHookAfter(...)` instead of `$wire->addHookAfter(...)`.
 
 The hook receives an array of descriptors in `$event->return`. Append your entry, then assign the updated array back. Hooks may replace the array to use only their own apps, remove entries with `array_filter`, or reorder them. For example, setting `$event->return = []` removes all application integrations while retaining Workspace home/login. Hook registration is trusted server-side PHP code, not an API for browser-submitted configuration. Do not call `apps()` or `allApps()` inside this hook, which would recursively resolve the registry.

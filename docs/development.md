@@ -72,6 +72,17 @@ logout revocation and demo re-entry. They do not automate a browser, JavaScript,
 second-factor authentication or every application workflow; native browser
 verification remains a separate check.
 
+For the legacy admin-entrypoint regression, prepare a disposable site whose
+`site/templates/admin.php` loads
+`require($config->paths->adminTemplates . 'controller.php');`, select
+AdminThemeWorkspace for the fixture administrator, then run only
+`python3 tests/login-e2e.py LoginE2E.test_native_admin_login_persists_and_logout_revokes_it`.
+This verifies the real native controller, login, exported admin URL and logout.
+On PW 3.0.275+, set `WORKSPACE_E2E_CORE_ICONS=1` to also require the icon
+configuration used by that core's JavaScript. Repeat with the modern entrypoint
+`require($config->paths->core . 'admin.php');`. The test does not rewrite the
+site template or user preference itself.
+
 ## Source layout
 
 - `Workspace.module.php`: module metadata and hook wiring.

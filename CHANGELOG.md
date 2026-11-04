@@ -2,6 +2,15 @@
 
 All notable changes to Workspace are documented here.
 
+## Unreleased
+
+### Fixed
+
+- Added the native admin-controller compatibility entry point for sites whose
+  older admin template loads `adminTemplates/controller.php` (issue #1).
+- Clarified that application registration needs an installed site Process and
+  its admin page; the Planner example is a placeholder.
+
 ## [1.0.0] - 2026-11-02
 
 First release. Workspace has not had an earlier published release.
