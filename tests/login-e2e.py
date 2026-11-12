@@ -22,14 +22,32 @@ class Markup(HTMLParser):
     def __init__(self, html):
         super().__init__()
         self.fields, self.apps = {}, []
+        self.hidden, self.checked, self.roles = {}, {}, {}
+        self.role_value, self.role_label = None, []
         self.feed(html)
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag in ('input', 'button') and attrs.get('name'):
-            self.fields[attrs['name']] = attrs.get('value', '')
+            name, value = attrs['name'], attrs.get('value', '')
+            self.fields[name] = value
+            if tag == 'input' and attrs.get('type') == 'hidden':
+                self.hidden[name] = value
+            if tag == 'input' and 'checked' in attrs:
+                self.checked.setdefault(name, []).append(value)
+            if tag == 'input' and name == 'roles[]':
+                self.role_value, self.role_label = value, []
         if tag == 'a' and 'ws-app-launch' in attrs.get('class', '').split():
             self.apps.append(attrs['href'])
+
+    def handle_data(self, data):
+        if self.role_value is not None:
+            self.role_label.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == 'label' and self.role_value is not None:
+            self.roles[''.join(self.role_label).strip()] = self.role_value
+            self.role_value = None
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -55,7 +73,7 @@ class LoginE2E(unittest.TestCase):
         client = self.client if redirect else urllib.request.build_opener(
             urllib.request.HTTPCookieProcessor(self.cookies), NoRedirect())
         request = urllib.request.Request(urllib.parse.urljoin(self.base + '/', path),
-            data=urllib.parse.urlencode(data).encode() if data is not None else None,
+            data=urllib.parse.urlencode(data, doseq=True).encode() if data is not None else None,
             headers={'User-Agent': 'Workspace-local-login-e2e/1.0'})
         try:
             response = client.open(request, timeout=15)
@@ -166,11 +184,68 @@ class LoginE2E(unittest.TestCase):
         status, _, html, _ = self.request(self.admin + 'access/users/')
         self.assertEqual(status, 200)
         self.assertIn(self.admin + 'access/users/add/', html)
-        status, _, html, _ = self.request(self.admin + 'access/users/add/')
+        add_path = self.admin + 'access/users/add/'
+        status, _, html, _ = self.request(add_path)
         self.assertEqual(status, 200)
         self.assert_authenticated(html)
         self.assertIn('Add New', html)
-        self.assertIn('_pw_page_name', Markup(html).fields)
+        form = Markup(html)
+        self.assertIn('_pw_page_name', form.fields)
+        role = os.environ.get('WORKSPACE_E2E_EMPLOYEE_ROLE')
+        if not role:
+            return
+
+        employee_name = 'workspace-e2e-' + secrets.token_hex(8)
+        initial_password = 'Pw!z9-' + secrets.token_hex(14)
+        new_password = 'Pw!z9-' + secrets.token_hex(14)
+        status, _, html, url = self.request(add_path, {
+            **form.hidden, '_pw_page_name': employee_name, 'submit_save': form.fields['submit_save'],
+        })
+        self.assertEqual(status, 200)
+        form = Markup(html)
+        user_id = form.hidden.get('id', '')
+        self.assertTrue(user_id.isdecimal(), 'Native Add User did not open a saved user record')
+        edit_path = self.admin + 'access/users/edit/?id=' + user_id
+        self.assertEqual(urllib.parse.urlparse(url).path, self.admin + 'access/users/edit/')
+        try:
+            self.assertIn(role, form.roles, 'Configured fixture role is missing from the native form')
+            self.assertEqual(form.checked.get('admin_theme'), ['AdminThemeWorkspace'])
+            payload = {
+                **form.hidden,
+                '_pw_page_name': employee_name,
+                'pass': initial_password,
+                '_pass': initial_password,
+                'email': employee_name + '@example.invalid',
+                'roles[]': [*form.checked.get('roles[]', []), form.roles[role]],
+                'admin_theme': 'AdminThemeWorkspace',
+                'submit_publish': form.fields['submit_publish'],
+            }
+            if form.checked.get('language'):
+                payload['language'] = form.checked['language'][0]
+            status, _, html, _ = self.request(edit_path, payload)
+            self.assertEqual(status, 200)
+            self.assertTrue('Published Page' in html, 'Native editor did not publish the employee')
+
+            employee = LoginE2E()
+            employee.setUp()
+            employee.assert_authenticated(employee.login(employee_name, initial_password))
+            home = employee.request(self.admin + 'workspace/')[2]
+            employee.assert_authenticated(home)
+            self.assertTrue(Markup(home).apps, 'Employee role has no available apps')
+            changed = employee.submit_password(initial_password, new_password, new_password)
+            self.assertTrue('Your password was changed.' in changed, 'Employee password did not change')
+            employee.request(self.admin + 'login/logout/')
+            employee.assert_authenticated(employee.login(employee_name, new_password))
+            employee.request(self.admin + 'login/logout/')
+        finally:
+            cleanup = Markup(self.request(edit_path)[2])
+            self.assertEqual(cleanup.fields.get('delete_page'), user_id, 'Native deletion confirmation is missing')
+            status, _, _, url = self.request(edit_path, {
+                **cleanup.hidden, 'delete_page': user_id, 'submit_delete': cleanup.fields['submit_delete'],
+            })
+            self.assertEqual(status, 200)
+            self.assertEqual(urllib.parse.urlparse(url).path, self.admin + 'access/users/')
+            self.assertNotIn('delete_page', Markup(self.request(edit_path)[2]).fields)
 
     def test_demo_redirect_is_temporary_and_not_cached(self):
         status, headers, _, _ = self.request('/demo/', redirect=False)

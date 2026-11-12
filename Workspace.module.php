@@ -39,5 +39,6 @@ class Workspace extends WireData implements Module {
         $this->addHookAfter('ProcessController::execute', $this, 'filterOperatorConfigurationLinks');
         $this->addHookAfter('ProcessKontor::execute', $this, 'adaptKontorOverview');
         $this->addHookAfter('ProcessLogin::afterLoginURL', $this, 'afterAdministratorLogin');
+        $this->addHookBefore('ProcessPageEdit::processInput', $this, 'prepareNativeUserTheme');
     }
 }

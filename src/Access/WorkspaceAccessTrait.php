@@ -30,6 +30,20 @@ trait WorkspaceAccessTrait {
             && !$user->isSuperuser() && $user->hasPermission('workspace-use');
     }
 
+    /** Let the native editor save an explicit Workspace choice for a user without a preference. */
+    public function prepareNativeUserTheme(HookEvent $event): void {
+        if ($event->arguments(1) || !$this->wire('user')->isSuperuser()) return;
+        if (!$this->wire('process') instanceof ProcessUser) return;
+        $target = $event->object->getPage();
+        if (!$target instanceof User || $target->admin_theme) return;
+        $field = $event->arguments(0)->getChildByName('admin_theme');
+        if ($field instanceof InputfieldSelect && $field->val() === 'AdminThemeWorkspace'
+            && $this->wire('input')->post('admin_theme') === 'AdminThemeWorkspace') {
+            // ProcessUser preselects the request's active theme even when the user's field is empty.
+            $field->val('');
+        }
+    }
+
     private function configurationPolicy(): WorkspaceConfigurationPolicy {
         $config = $this->wire('config');
         $paths = $settings = [];

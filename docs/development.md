@@ -64,8 +64,11 @@ values. Missing credentials explicitly skip that check. Set
 disposable operator with at least one launchable app. The test changes this
 account's password, signs in with the new password, then restores the original.
 It also checks the operator's launcher and denial of administrative screens.
-The superuser check opens the native Add User form. Each test keeps its own
-session cookies.
+The superuser check opens the native Add User form. Set
+`WORKSPACE_E2E_EMPLOYEE_ROLE` to a disposable operator role with `workspace-use`
+and permission for at least one app to also exercise publishing a temporary
+employee in the Workspace theme, their first sign-in, password change, and
+native account deletion. Each test keeps its own session cookies.
 
 The demo endpoint belongs to the isolated site, not the distributed module.
 It must be loopback-only, send `Cache-Control: no-store` and redirect with 302;
