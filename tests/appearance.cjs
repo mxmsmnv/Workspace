@@ -7,12 +7,15 @@ const cssTree = require('css-tree');
 const fixture = process.env.WORKSPACE_HTML;
 if (!fixture) throw new Error('Set WORKSPACE_HTML to an authenticated launcher HTML response from the isolated site.');
 const html = fs.readFileSync(fixture, 'utf8');
-const source = fs.readFileSync(path.join(__dirname, '../assets/workspace.js'), 'utf8');
+const scripts = ['workspace.js', 'launcher.js'].map(file => fs.readFileSync(path.join(__dirname, '../assets', file), 'utf8'));
 async function boot(t, values = {}, user = null, unavailableStorage = false, prepare = null) {
   const dom = new JSDOM(html, { url: 'https://workspace.test:8443/workspace-admin/workspace/', runScripts: 'outside-only' });
   t.after(() => dom.window.close());
   const w = dom.window;
-  if (user) w.document.body.dataset.wsUser = user;
+  if (user) {
+    w.document.body.dataset.wsUser = user;
+    w.document.querySelector('.ws-launcher').dataset.wsUser = user;
+  }
   const prefix = `workspace.${w.document.body.dataset.wsUser}.`;
   const change = [];
   const media = { matches: false, addEventListener: (name, fn) => change.push(fn) };
@@ -23,7 +26,7 @@ async function boot(t, values = {}, user = null, unavailableStorage = false, pre
   for (const [key, value] of Object.entries(values)) w.localStorage.setItem(key, value);
   if (unavailableStorage) Object.defineProperty(w, 'localStorage', { get() { throw new Error('Storage disabled'); } });
   if (prepare) prepare(w);
-  w.eval(source);
+  for (const script of scripts) w.eval(script);
   await new Promise(resolve => w.setTimeout(resolve, 0));
   return { w, doc: w.document, prefix, media, change };
 }
@@ -64,24 +67,39 @@ test('all nine Cookie-inspired palettes work; preference is scoped to account an
   const other = await boot(t, values, 'another-account');
   assert.equal(other.doc.documentElement.dataset.wsAccent, 'blue');
 });
+const apps = doc => [...doc.querySelectorAll('[data-ws-app]')];
+const visibleApps = doc => apps(doc).filter(card => !card.hidden).map(card => card.dataset.wsAppId);
+const firstApp = doc => {
+  const card = apps(doc)[0];
+  assert(card, 'Launcher HTML needs at least one installed application');
+  return card;
+};
+
 test('favorites, search, empty state and reset use only available rendered apps', async t => {
   const { w, doc, prefix } = await boot(t);
-  assert.equal(doc.querySelectorAll('[data-ws-app]').length, 6);
-  doc.querySelector('[data-ws-pin=mercato]').click();
-  assert.deepEqual(JSON.parse(w.localStorage.getItem(prefix + 'pinned')), ['mercato']);
+  const { wsAppId, search: term } = firstApp(doc).dataset;
+  const available = apps(doc).map(card => card.dataset.wsAppId);
+  const pinSelector = `[data-ws-pin="${wsAppId}"]`;
+  doc.querySelector(pinSelector).click();
+  assert.deepEqual(JSON.parse(w.localStorage.getItem(prefix + 'pinned')), [wsAppId]);
   doc.querySelector('[data-ws-filter=pinned]').click();
-  assert.deepEqual([...doc.querySelectorAll('[data-ws-app]')].filter(card => !card.hidden).map(card => card.dataset.wsAppId), ['mercato']);
+  assert.deepEqual(visibleApps(doc), [wsAppId]);
   const reload = await boot(t, { [prefix + 'pinned']: w.localStorage.getItem(prefix + 'pinned') });
-  assert.equal(reload.doc.querySelector('[data-ws-pin=mercato]').getAttribute('aria-pressed'), 'true');
-  doc.querySelector('[data-ws-pin=mercato]').click();
+  assert.equal(reload.doc.querySelector(pinSelector).getAttribute('aria-pressed'), 'true');
+  doc.querySelector(pinSelector).click();
   assert.equal(doc.querySelector('[data-ws-empty]').hidden, true);
   assert.equal(doc.querySelector('[data-ws-filter=all]').getAttribute('aria-pressed'), 'true');
-  doc.querySelector('[data-ws-reset]').click();
   const search = doc.querySelector('[data-ws-search]');
-  search.value = 'mail'; search.dispatchEvent(new w.Event('input'));
-  assert.deepEqual([...doc.querySelectorAll('[data-ws-app]')].filter(card => !card.hidden).map(card => card.dataset.wsAppId), ['mailbox']);
+  search.value = term.trim(); search.dispatchEvent(new w.Event('input'));
+  assert(visibleApps(doc).includes(wsAppId));
+  search.value = 'no application matches this string'; search.dispatchEvent(new w.Event('input'));
+  assert.deepEqual(visibleApps(doc), []);
+  assert.equal(doc.querySelector('[data-ws-empty]').hidden, false);
+  doc.querySelector('[data-ws-reset]').click();
+  assert.deepEqual(visibleApps(doc), available);
+  search.value = 'no application matches this string'; search.dispatchEvent(new w.Event('input'));
   search.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' }));
-  assert.equal([...doc.querySelectorAll('[data-ws-app]')].filter(card => !card.hidden).length, 6);
+  assert.deepEqual(visibleApps(doc), available);
 });
 test('appearance and launcher remain usable when browser storage is unavailable', async t => {
   const { doc } = await boot(t, {}, null, true);
@@ -193,7 +211,9 @@ test('six local fonts and contrast choices persist; reset changes appearance but
     font.value=value; font.dispatchEvent(new w.Event('change'));
     assert.equal(doc.documentElement.dataset.wsFont,value);
   }
-  doc.querySelector('[data-ws-pin=mailbox]').click();
+  const appId = firstApp(doc).dataset.wsAppId;
+  const pin = doc.querySelector(`[data-ws-pin="${appId}"]`);
+  pin.click();
   assert.equal(doc.querySelector('[data-ws-filter=pinned]').dataset.wsHasFavorites, 'true');
   doc.querySelector('[data-ws-contrast=maximum]').click();
   const reload = await boot(t, { [prefix+'contrast']:w.localStorage.getItem(prefix+'contrast') });
@@ -205,11 +225,11 @@ test('six local fonts and contrast choices persist; reset changes appearance but
   assert.equal(doc.documentElement.dataset.wsScale,'100');
   assert.equal(doc.documentElement.dataset.wsContrast,'standard');
   assert.equal(doc.documentElement.dataset.wsAccent,'blue');
-  assert.deepEqual(JSON.parse(w.localStorage.getItem(prefix+'pinned')),['mailbox']);
+  assert.deepEqual(JSON.parse(w.localStorage.getItem(prefix+'pinned')),[appId]);
   doc.querySelector('[data-ws-filter=pinned]').click();
   assert.equal(doc.querySelector('[data-ws-filter=pinned]').getAttribute('aria-pressed'),'true');
-  assert.deepEqual([...doc.querySelectorAll('[data-ws-app]')].filter(card=>!card.hidden).map(card=>card.dataset.wsAppId),['mailbox']);
-  doc.querySelector('[data-ws-pin=mailbox]').click();
+  assert.deepEqual([...doc.querySelectorAll('[data-ws-app]')].filter(card=>!card.hidden).map(card=>card.dataset.wsAppId),[appId]);
+  pin.click();
   assert.equal(doc.querySelector('[data-ws-filter=pinned]').dataset.wsHasFavorites,'false');
 });
 
@@ -230,27 +250,29 @@ test('app-wide native button enhancement cannot restyle Workspace controls', asy
 test('favorites become the first and default view on first pin, reload and return; last removal restores all', async t => {
   const { w, doc, prefix } = await boot(t);
   const order = d => [...d.querySelectorAll('.ws-library-filters [data-ws-filter]')].map(button => button.dataset.wsFilter);
-  const visible = d => [...d.querySelectorAll('[data-ws-app]')].filter(card=>!card.hidden).map(card=>card.dataset.wsAppId);
+  const appId = firstApp(doc).dataset.wsAppId;
+  const count = apps(doc).length;
+  const pin = doc.querySelector(`[data-ws-pin="${appId}"]`);
   assert.deepEqual(order(doc), ['all','pinned']);
-  doc.querySelector('[data-ws-pin=mercato]').click();
+  pin.click();
   assert.deepEqual(order(doc), ['pinned','all']);
   assert.equal(doc.querySelector('[data-ws-filter=pinned]').getAttribute('aria-pressed'),'true');
-  assert.deepEqual(visible(doc), ['mercato']);
+  assert.deepEqual(visibleApps(doc), [appId]);
   doc.querySelector('[data-ws-filter=all]').click();
-  assert.equal(visible(doc).length,6);
+  assert.equal(visibleApps(doc).length,count);
   assert.deepEqual(order(doc),['pinned','all']);
   const values = { [prefix+'pinned']:w.localStorage.getItem(prefix+'pinned') };
   const returning = await boot(t,values);
   assert.deepEqual(order(returning.doc), ['pinned','all']);
-  assert.deepEqual(visible(returning.doc), ['mercato']);
+  assert.deepEqual(visibleApps(returning.doc), [appId]);
   const unavailable = await boot(t,{ [prefix+'pinned']:JSON.stringify(['not-installed']) });
   assert.deepEqual(order(unavailable.doc), ['all','pinned']);
-  assert.equal(visible(unavailable.doc).length,6);
+  assert.equal(visibleApps(unavailable.doc).length,count);
   const other = await boot(t,values,'another-user');
   assert.deepEqual(order(other.doc), ['all','pinned']);
-  doc.querySelector('[data-ws-pin=mercato]').click();
+  pin.click();
   assert.deepEqual(order(doc), ['all','pinned']);
-  assert.equal(visible(doc).length,6);
+  assert.equal(visibleApps(doc).length,count);
 });
 
 

@@ -59,7 +59,13 @@ site with the prepared `/demo/` fixture. Optionally set
 `WORKSPACE_E2E_ADMIN_PATH` (default `/workspace-admin/`) and supply
 `WORKSPACE_E2E_USER` / `WORKSPACE_E2E_PASSWORD` through a private environment
 provider to include native administrator login. Never commit or print these
-values. Missing credentials explicitly skip that check.
+values. Missing credentials explicitly skip that check. Set
+`WORKSPACE_E2E_OPERATOR` and `WORKSPACE_E2E_OPERATOR_PASSWORD` for a separate
+disposable operator with at least one launchable app. The test changes this
+account's password, signs in with the new password, then restores the original.
+It also checks the operator's launcher and denial of administrative screens.
+The superuser check opens the native Add User form. Each test keeps its own
+session cookies.
 
 The demo endpoint belongs to the isolated site, not the distributed module.
 It must be loopback-only, send `Cache-Control: no-store` and redirect with 302;
