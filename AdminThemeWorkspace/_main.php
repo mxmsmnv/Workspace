@@ -14,7 +14,7 @@ $title = $current['title'] ?? $workspace->title();
 $home = $workspace->homeUrl();
 $shell = $user->isLoggedin() && $layout !== 'modal';
 $loginScreen = !$user->isLoggedin() && (string)$page->process === 'ProcessLogin';
-$assetVersion = (string)max(filemtime(dirname(__DIR__).'/assets/workspace.css'), filemtime(dirname(__DIR__).'/assets/appearance.css'), filemtime(dirname(__DIR__).'/assets/workspace.js'), filemtime(dirname(__DIR__).'/assets/administration.css'), filemtime(dirname(__DIR__).'/assets/menus.css'));
+$assetVersion = (string)max(filemtime(dirname(__DIR__).'/assets/workspace.css'), filemtime(dirname(__DIR__).'/assets/appearance.css'), filemtime(dirname(__DIR__).'/assets/workspace.js'), filemtime(dirname(__DIR__).'/assets/launcher.js'), filemtime(dirname(__DIR__).'/assets/administration.css'), filemtime(dirname(__DIR__).'/assets/menus.css'));
 ?><!DOCTYPE html>
 <html class="pw" lang="<?= $e(
     _x('en', 'HTML language code', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?>">
@@ -128,4 +128,5 @@ $assetVersion = (string)max(filemtime(dirname(__DIR__).'/assets/workspace.css'),
 <?php $adminTheme->includeFile('_body-scripts.php', ['layout' => $layout]); ?>
 <script type="application/json" id="ws-translations"><?= json_encode(require dirname(__DIR__) . '/src/Presentation/WorkspaceClientTranslations.php', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?></script>
 <script src="<?= $e($workspace->assetUrl('workspace.js')) ?>?v=<?= $e($assetVersion) ?>" defer></script>
+<script src="<?= $e($workspace->assetUrl('launcher.js')) ?>?v=<?= $e($assetVersion) ?>" defer></script>
 </body></html>

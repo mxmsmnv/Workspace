@@ -19,44 +19,70 @@ class ProcessWorkspace extends Process {
     }
 
     public function ___execute(): string {
-        $this->headline(__('Your workspace', Workspace::translationFile('ProcessWorkspace.module.php')));
+        $title = __('Your workspace', Workspace::translationFile('ProcessWorkspace.module.php'));
+        $this->headline($title);
+        $theme = $this->wire('adminTheme');
+        $standardAdmin = $theme instanceof AdminThemeUikit && !$theme instanceof AdminThemeWorkspace;
         $workspace = $this->wire('modules')->get('Workspace');
         $apps = $workspace->apps();
         $esc = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
         $icon = static fn($name): string => AdminThemeWorkspace::icon($name);
-        $out = '<section class="ws-launcher"><div class="ws-launcher-heading"><div><p class="ws-eyebrow">' . $esc(
-            __('APPLICATIONS', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p><h1>' . $esc(
-            __('Your workspace', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</h1><p class="ws-lead">' . $esc(
-            __('The tools you use, together in one place.', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p></div>';
-        $out .= '<label class="ws-search"><span class="ws-sr-only">' . $esc(
-            __('Find an application', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</span>'.$icon('search').'<input type="search" id="ws-app-search" data-ws-search placeholder="' . $esc(
-            __('Find an application', Workspace::translationFile('ProcessWorkspace.module.php'))) . '" autocomplete="off"><kbd>/</kbd></label></div>';
+        if ($standardAdmin && !$theme->isModal) {
+            $adminUrl = $esc($this->wire('config')->urls->admin);
+            $adminLabel = $esc(__('Admin', Workspace::translationFile('ProcessWorkspace.module.php')));
+            $currentLabel = $esc(__('Workspace', Workspace::translationFile('ProcessWorkspace.module.php')));
+            $navLabel = $esc(__('Breadcrumb', Workspace::translationFile('ProcessWorkspace.module.php')));
+            $theme->addHookAfter('renderBreadcrumbs', static function (HookEvent $event) use ($adminUrl, $adminLabel, $currentLabel, $navLabel): void {
+                $event->return = '<nav aria-label="' . $navLabel . '"><ol class="uk-breadcrumb">'
+                    . '<li><a href="' . $adminUrl . '">' . $adminLabel . '</a></li>'
+                    . '<li><span aria-current="page">' . $currentLabel . '</span></li></ol></nav>';
+            });
+        }
+
+        $native = static fn(string $classes): string => $standardAdmin ? ' ' . $classes : '';
+        $userId = (int) $this->wire('user')->id;
+        $out = '<section class="ws-launcher"' . ($standardAdmin ? ' data-ws-native' : '') . ' data-ws-user="' . $userId . '"><div class="ws-launcher-heading' . $native('uk-flex uk-flex-middle uk-flex-between uk-flex-wrap uk-margin-small-bottom') . '"><div>';
+        if (!$standardAdmin) {
+            $out .= '<p class="ws-eyebrow">' . $esc(__('APPLICATIONS', Workspace::translationFile('ProcessWorkspace.module.php')))
+                . '</p><h1>' . $esc($title) . '</h1>';
+        }
+        $out .= '<p class="ws-lead' . $native('uk-margin-small-bottom') . '">' . $esc(__('The tools you use, together in one place.', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p></div>';
+        $out .= '<label class="ws-search' . $native('uk-inline uk-width-medium') . '"><span class="ws-sr-only' . $native('uk-hidden-visually') . '">' . $esc(
+            __('Find an application', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</span>'.($standardAdmin ? '<span class="uk-form-icon">'.$icon('search').'</span>' : $icon('search')).'<input' . ($standardAdmin ? ' class="uk-input"' : '') . ' type="search" id="ws-app-search" data-ws-search placeholder="' . $esc(
+            __('Find an application', Workspace::translationFile('ProcessWorkspace.module.php'))) . '" autocomplete="off">' . ($standardAdmin ? '' : '<kbd>/</kbd>') . '</label></div>';
         if ($this->wire('user')->isSuperuser()) {
-            $out .= '<p class="ws-admin-shortcut"><a class="uk-button uk-button-default" href="'.$esc($workspace->homeUrl().'appearance/').'">' . $esc(
+            $out .= '<p class="ws-admin-shortcut' . $native('uk-margin-small') . '"><a class="uk-button uk-button-default" href="'.$esc($workspace->homeUrl().'appearance/').'">' . $esc(
             __('Interface settings', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</a></p>';
         }
-        $out .= '<div class="ws-library-toolbar"><div class="ws-library-filters" aria-label="' . $esc(
-            __('Application filter', Workspace::translationFile('ProcessWorkspace.module.php'))) . '"><button type="button" data-ws-filter="all" aria-pressed="true">' . $esc(
-            __('All applications', Workspace::translationFile('ProcessWorkspace.module.php'))) . ' <span>'.count($apps).'</span></button><button type="button" data-ws-filter="pinned" aria-pressed="false">' . $esc(
-            __('Favorites', Workspace::translationFile('ProcessWorkspace.module.php'))) . ' <span data-ws-pinned-count>0</span></button></div><span class="ws-result-count" data-ws-count aria-live="polite">'.$esc(sprintf(
-            _n('%d application', '%d applications', count($apps), Workspace::translationFile('ProcessWorkspace.module.php')), count($apps))).'</span></div><div class="ws-app-grid">';
+        $out .= '<div class="ws-library-toolbar' . $native('uk-flex uk-flex-middle uk-flex-between uk-flex-wrap uk-margin') . '"><div class="ws-library-filters' . $native('uk-flex uk-flex-wrap') . '" aria-label="' . $esc(
+            __('Application filter', Workspace::translationFile('ProcessWorkspace.module.php'))) . '"><button' . ($standardAdmin ? ' class="uk-button uk-button-default uk-active uk-margin-small-right"' : '') . ' type="button" data-ws-filter="all" aria-pressed="true">' . $esc(
+            __('All applications', Workspace::translationFile('ProcessWorkspace.module.php'))) . ' <span>'.count($apps).'</span></button><button' . ($standardAdmin ? ' class="uk-button uk-button-default"' : '') . ' type="button" data-ws-filter="pinned" aria-pressed="false">' . $esc(
+            __('Favorites', Workspace::translationFile('ProcessWorkspace.module.php'))) . ' <span data-ws-pinned-count>0</span></button></div><span class="ws-result-count' . $native('uk-text-meta') . '" data-ws-count aria-live="polite">'.$esc(sprintf(
+            _n('%d application', '%d applications', count($apps), Workspace::translationFile('ProcessWorkspace.module.php')), count($apps))).'</span></div><div class="ws-app-grid' . $native('uk-flex uk-flex-wrap') . '">';
         foreach ($apps as $app) {
-            $out .= '<article class="ws-app-card" data-ws-app data-ws-app-id="'.$esc($app['id']).'" data-search="'.$esc(strtolower($app['title'].' '.$app['description'])).'" style="--app-color:'.$esc($app['color']).'">';
-            $out .= '<a class="ws-app-launch" href="'.$esc($app['url']).'"><span class="ws-app-icon">'.$icon($app['icon']).'</span><div class="ws-app-copy"><h2>'.$esc($app['title']).'</h2><p>'.$esc($app['description']).'</p></div><span class="ws-app-open">' . $esc(
+            $out .= '<article class="ws-app-card' . $native('uk-card uk-card-default uk-card-small uk-card-body uk-position-relative uk-width-large uk-margin-small-right uk-margin-small-bottom') . '" data-ws-app data-ws-app-id="'.$esc($app['id']).'" data-search="'.$esc(strtolower($app['title'].' '.$app['description'])).'" style="--app-color:'.$esc($app['color']).'">';
+            $out .= '<a class="ws-app-launch' . $native('uk-display-block uk-link-reset') . '" href="'.$esc($app['url']).'"><span class="ws-app-icon">'.$icon($app['icon']).'</span><div class="ws-app-copy' . $native('uk-margin-small') . '"><h2' . ($standardAdmin ? ' class="uk-card-title uk-margin-remove"' : '') . '>'.$esc($app['title']).'</h2><p' . ($standardAdmin ? ' class="uk-margin-small-top uk-margin-remove-bottom"' : '') . '>'.$esc($app['description']).'</p></div><span class="ws-app-open' . $native('uk-link') . '">' . $esc(
             __('Open application', Workspace::translationFile('ProcessWorkspace.module.php'))) . ' '.$icon('arrow').'</span></a>';
-            $out .= '<button class="ws-pin" type="button" data-ws-pin="'.$esc($app['id']).'" data-ws-app-title="'.$esc($app['title']).'" aria-pressed="false" aria-label="'.$esc(sprintf(
+            $out .= '<button class="ws-pin' . $native('uk-button uk-button-default uk-button-small uk-position-top-right uk-position-small') . '" type="button" data-ws-pin="'.$esc($app['id']).'" data-ws-app-title="'.$esc($app['title']).'" aria-pressed="false" aria-label="'.$esc(sprintf(
             __('Add %s to favorites', Workspace::translationFile('ProcessWorkspace.module.php')), $app['title'])).'" title="'.$esc(
-            __('Add to favorites', Workspace::translationFile('ProcessWorkspace.module.php'))).'"><span class="ws-star-outline">'.$icon('star').'</span><span class="ws-star-filled">'.$icon('star-filled').'</span></button></article>';
+            __('Add to favorites', Workspace::translationFile('ProcessWorkspace.module.php'))).'"><span class="ws-star-outline">'.$icon('star').'</span><span class="ws-star-filled"' . ($standardAdmin ? ' hidden' : '') . '>'.$icon('star-filled').'</span></button></article>';
         }
-        $out .= '</div><div class="ws-empty" data-ws-empty hidden><h2>' . $esc(
+        $out .= '</div><div class="ws-empty' . $native('uk-alert uk-margin') . '" data-ws-empty hidden><h2>' . $esc(
             __('No applications found', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</h2><p data-ws-empty-message>' . $esc(
-            __('Try another name or clear the search.', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p><button class="ws-empty-action" type="button" data-ws-reset>' . $esc(
+            __('Try another name or clear the search.', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p><button class="ws-empty-action' . $native('uk-button uk-button-default') . '" type="button" data-ws-reset>' . $esc(
             __('Show all applications', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</button></div>';
-        if (!$apps) $out .= '<div class="ws-empty"><h2>' . $esc(
+        if (!$apps) $out .= '<div class="ws-empty' . $native('uk-alert uk-margin') . '"><h2>' . $esc(
             __('Your workspace is ready', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</h2><p>' . $esc(
             __('Applications appear here when they are connected to your account.', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p></div>';
-        return $out.'<p class="ws-home-note">' . sprintf($esc(
-            __('Use %s to search. Pin the applications you use most.', Workspace::translationFile('ProcessWorkspace.module.php'))), '<kbd>/</kbd>') . '</p><span class="ws-sr-only" data-ws-announcement role="status"></span></section>';
+        $out .= '<p class="ws-home-note' . $native('uk-text-meta') . '">' . sprintf($esc(
+            __('Use %s to search. Pin the applications you use most.', Workspace::translationFile('ProcessWorkspace.module.php'))), '<kbd>/</kbd>') . '</p><span class="ws-sr-only' . $native('uk-hidden-visually') . '" data-ws-announcement role="status"></span></section>';
+        if ($standardAdmin) {
+            $messages = json_encode(require __DIR__ . '/src/Presentation/WorkspaceClientTranslations.php', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+            $scriptUrl = $esc($workspace->assetUrl('launcher.js') . '?v=' . filemtime(__DIR__ . '/assets/launcher.js'));
+            $out .= '<script type="application/json" id="ws-translations">' . $messages . '</script>'
+                . '<script src="' . $scriptUrl . '" defer></script>';
+        }
+        return $out;
     }
 
     public function ___executeAccount(): string {
