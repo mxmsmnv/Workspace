@@ -55,7 +55,10 @@ $assetVersion = (string)max(filemtime(dirname(__DIR__).'/assets/workspace.css'),
 
     <details class="ws-account ws-popover"><summary aria-label="<?= $e(
     __('Your account', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?>"><span class="ws-avatar" aria-hidden="true"><?= AdminThemeWorkspace::icon('user') ?></span><span class="ws-account-name"><?= $e($name) ?></span><?= AdminThemeWorkspace::icon('chevron') ?></summary><div class="ws-account-panel"><div class="ws-account-identity"><span class="ws-avatar" aria-hidden="true"><?= AdminThemeWorkspace::icon('user') ?></span><div><strong><?= $e($name) ?></strong><?php if($user->email): ?><span class="ws-account-email"><?= $e($user->email) ?></span><?php endif ?></div></div><button class="ws-appearance-trigger" type="button" data-ws-appearance-open aria-haspopup="dialog"><?= AdminThemeWorkspace::icon('palette') ?><span class="ws-action-label"><?= $e(
-    __('Appearance', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></button><?php if($user->isSuperuser()): ?><a href="<?= $e($home . 'appearance/') ?>"><?= AdminThemeWorkspace::icon('grid') ?><span><?= $e(
+    __('Appearance', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></button>
+    <a href="<?= $e($home . 'password/') ?>"><?= AdminThemeWorkspace::icon('key') ?><span><?= $e(
+    __('Change password', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></a>
+    <?php if($user->isSuperuser()): ?><a href="<?= $e($home . 'appearance/') ?>"><?= AdminThemeWorkspace::icon('grid') ?><span><?= $e(
     __('Interface settings', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></a><?php endif ?>
     <?php if($usersAdminUrl !== null): ?><a href="<?= $e($usersAdminUrl) ?>"><?= AdminThemeWorkspace::icon('users') ?><span><?= $e(
     __('Users', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></a><?php endif ?><a class="ws-signout" href="<?= $e($config->urls->admin . 'login/logout/') ?>"><?= AdminThemeWorkspace::icon('logout') ?><span><?= $e(

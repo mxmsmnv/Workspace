@@ -88,13 +88,76 @@ class ProcessWorkspace extends Process {
     public function ___executeAccount(): string {
         $this->headline(__('Your account', Workspace::translationFile('ProcessWorkspace.module.php')));
         $user = $this->wire('user');
+        $workspace = $this->wire('modules')->get('Workspace');
         $esc = static fn($v): string => htmlspecialchars((string) $v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
+        $passwordLink = '<a class="uk-button uk-button-default" href="' . $esc($workspace->homeUrl() . 'password/') . '">' . $esc(
+            __('Change password', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</a>';
         return '<section class="ws-account"><p class="ws-eyebrow">' . $esc(
             __('WORKSPACE', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p><h1>' . $esc(
             __('Your account', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</h1><dl><dt>' . $esc(
             __('Name', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</dt><dd>'.$esc($user->name).'</dd><dt>' . $esc(
             __('Email', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</dt><dd>'.$esc($user->email).'</dd></dl><p>' . $esc(
-            __('Contact your workspace administrator to change your account details.', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p></section>';
+            __('Contact your workspace administrator to change your account details.', Workspace::translationFile('ProcessWorkspace.module.php'))) . '</p><p>' . $passwordLink . '</p></section>';
+    }
+
+    public function ___executePassword(): string {
+        $user = $this->wire('user');
+        if (!$user->isLoggedin()) {
+            throw new WirePermissionException(__('Sign in to change your password.'));
+        }
+
+        $title = __('Change password', Workspace::translationFile('ProcessWorkspace.module.php'));
+        $this->headline($title);
+        $input = $this->wire('input');
+        $session = $this->wire('session');
+        $modules = $this->wire('modules');
+        $workspace = $modules->get('Workspace');
+        $url = $workspace->homeUrl() . 'password/';
+
+        $password = $user->getField('pass')->getInputfield($user);
+        $password->attr('name', 'pass');
+        $password->set('requireOld', InputfieldPassword::requireOldYes);
+        $password->required = true;
+
+        $form = $modules->get('InputfieldForm');
+        $form->attr('method', 'post');
+        $form->attr('action', $url);
+        $form->add($password);
+        $submit = $modules->get('InputfieldSubmit');
+        $submit->attr('name', 'save_password');
+        $submit->attr('value', $title);
+        $form->add($submit);
+
+        if ($input->requestMethod('POST')) {
+            $session->CSRF->validate();
+            $post = $input->post;
+            $complete = true;
+            foreach (['pass', '_pass', '_old_pass'] as $name) {
+                $value = $post->get($name);
+                if (!is_string($value) || $value === '') $complete = false;
+            }
+            if (!$complete) {
+                $password->error(__('Enter your current password and confirm your new password.', Workspace::translationFile('ProcessWorkspace.module.php')));
+            } else {
+                $password->processInput($post);
+                $newPassword = $password->val();
+                if ($password->getErrors() === [] && is_string($newPassword) && $newPassword !== '') {
+                    $formatted = $user->of(false);
+                    try {
+                        $user->set('pass', $newPassword);
+                        if (!$user->save('pass')) throw new WireException(__('Unable to save the password.'));
+                    } finally {
+                        $user->of($formatted);
+                    }
+                    $session->message(__('Your password was changed.', Workspace::translationFile('ProcessWorkspace.module.php')));
+                    $session->redirect($url, false);
+                }
+            }
+            $password->attr('value', '');
+        }
+
+        $label = htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return '<section class="ws-account"><h1>' . $label . '</h1>' . $form->render() . '</section>';
     }
 
     public function ___executeAdministration(): string {
