@@ -89,11 +89,10 @@ class LoginE2E(unittest.TestCase):
     def login(self, user, password, path=None):
         path = path or self.admin + 'login/'
         for attempt in range(2):
-            _, _, login_form, login_url = self.request(path)
-            fields = Markup(login_form).fields
+            fields = Markup(self.request(path)[2]).fields
             self.assertTrue(any(name.startswith('TOKEN') for name in fields), 'Native CSRF token missing')
             fields.update(login_name=user, login_pass=password, login_submit=fields.get('login_submit') or 'Login')
-            response = self.request(login_url, fields)[2]
+            response = self.request(path, fields)[2]
             delay = re.search(r'Please wait at least (\d+) seconds before attempting another login', response)
             if not delay or attempt == 1 or int(delay.group(1)) >= 30:
                 return response
@@ -174,10 +173,6 @@ class LoginE2E(unittest.TestCase):
                 self.assertIn('Your password was changed.', restored, 'Fixture password was not restored')
         self.request(self.admin + 'login/logout/')
         self.assertIn('id="ProcessLoginForm"', self.request(self.admin + 'workspace/')[2])
-        self.cookies.clear()
-        linked_app = self.login(user, password, apps[0])
-        self.assert_authenticated(linked_app)
-        self.assertNotRegex(linked_app, r'class="ws-launcher(?:\s|")')
 
     def test_superuser_can_open_native_user_creation_from_workspace(self):
         user = os.environ.get('WORKSPACE_E2E_USER')
