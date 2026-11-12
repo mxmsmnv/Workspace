@@ -12,6 +12,8 @@ $adminTheme->renderExtraMarkup('x');
 $name = (string)($user->get('title|name'));
 $title = $current['title'] ?? $workspace->title();
 $home = $workspace->homeUrl();
+$usersAdminUrl = $workspace->usersAdminUrl();
+$usersAdminPage = $usersAdminUrl !== null && (string) $page->process === 'ProcessUser';
 $shell = $user->isLoggedin() && $layout !== 'modal';
 $loginScreen = !$user->isLoggedin() && (string)$page->process === 'ProcessLogin';
 $assetVersion = (string)max(filemtime(dirname(__DIR__).'/assets/workspace.css'), filemtime(dirname(__DIR__).'/assets/appearance.css'), filemtime(dirname(__DIR__).'/assets/workspace.js'), filemtime(dirname(__DIR__).'/assets/launcher.js'), filemtime(dirname(__DIR__).'/assets/administration.css'), filemtime(dirname(__DIR__).'/assets/menus.css'));
@@ -54,7 +56,9 @@ $assetVersion = (string)max(filemtime(dirname(__DIR__).'/assets/workspace.css'),
     <details class="ws-account ws-popover"><summary aria-label="<?= $e(
     __('Your account', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?>"><span class="ws-avatar" aria-hidden="true"><?= AdminThemeWorkspace::icon('user') ?></span><span class="ws-account-name"><?= $e($name) ?></span><?= AdminThemeWorkspace::icon('chevron') ?></summary><div class="ws-account-panel"><div class="ws-account-identity"><span class="ws-avatar" aria-hidden="true"><?= AdminThemeWorkspace::icon('user') ?></span><div><strong><?= $e($name) ?></strong><?php if($user->email): ?><span class="ws-account-email"><?= $e($user->email) ?></span><?php endif ?></div></div><button class="ws-appearance-trigger" type="button" data-ws-appearance-open aria-haspopup="dialog"><?= AdminThemeWorkspace::icon('palette') ?><span class="ws-action-label"><?= $e(
     __('Appearance', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></button><?php if($user->isSuperuser()): ?><a href="<?= $e($home . 'appearance/') ?>"><?= AdminThemeWorkspace::icon('grid') ?><span><?= $e(
-    __('Interface settings', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></a><?php endif ?><a class="ws-signout" href="<?= $e($config->urls->admin . 'login/logout/') ?>"><?= AdminThemeWorkspace::icon('logout') ?><span><?= $e(
+    __('Interface settings', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></a><?php endif ?>
+    <?php if($usersAdminUrl !== null): ?><a href="<?= $e($usersAdminUrl) ?>"><?= AdminThemeWorkspace::icon('users') ?><span><?= $e(
+    __('Users', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></span></a><?php endif ?><a class="ws-signout" href="<?= $e($config->urls->admin . 'login/logout/') ?>"><?= AdminThemeWorkspace::icon('logout') ?><span><?= $e(
     __('Sign out', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?><small><?= $e(
     __('End this session', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></small></span></a></div></details></div>
 </header>
@@ -117,7 +121,17 @@ $assetVersion = (string)max(filemtime(dirname(__DIR__).'/assets/workspace.css'),
     __('WORKSPACE', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></p><h1><?= $e(
     __('Welcome to Workspace', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></h1><p><?= $e(
     __('Your applications. One place to sign in.', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></p></div><?php endif ?>
-<?php if($current || (!$shell && !$loginScreen)): ?><header id="pw-content-head"><div id="pw-content-head-buttons"></div><h1 id="pw-content-title"><?= $e($adminTheme->getHeadline()) ?></h1></header><?php endif ?>
+<?php if($current || $usersAdminPage || (!$shell && !$loginScreen)): ?>
+<header id="pw-content-head">
+    <div id="pw-content-head-buttons">
+        <?php if($shell && $usersAdminPage && !$input->urlSegment1): ?>
+        <a class="uk-button uk-button-primary" href="<?= $e($usersAdminUrl . 'add/') ?>"><?= $e(
+            __('Add user', Workspace::translationFile('AdminThemeWorkspace/_main.php'))) ?></a>
+        <?php endif ?>
+    </div>
+    <h1 id="pw-content-title"><?= $e($adminTheme->getHeadline()) ?></h1>
+</header>
+<?php endif ?>
 <div id="pw-content-body"><?= $content ?? '' ?></div>
 </div></main>
 <?php if($shell): ?><footer class="ws-footer"><span>Workspace</span><div class="ws-footer-end"><span><?= $e(

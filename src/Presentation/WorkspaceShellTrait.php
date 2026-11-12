@@ -15,6 +15,11 @@ trait WorkspaceShellTrait {
         return $page ? (string) $page->url : rtrim((string) $this->wire('config')->urls->admin, '/') . '/workspace/';
     }
 
+    public function usersAdminUrl(): ?string {
+        if (!$this->wire('user')->isSuperuser()) return null;
+        return $this->processPage('ProcessUser')?->url;
+    }
+
     public function assetUrl(string $file): string {
         if (!preg_match('~^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)+$~D', $file)) {
             throw new WireException('Invalid Workspace asset name.');
