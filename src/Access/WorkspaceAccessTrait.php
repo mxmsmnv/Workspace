@@ -2,13 +2,33 @@
 
 trait WorkspaceAccessTrait {
     /** The native login owns passwords, throttling and any configured second factor. */
-    public function afterAdministratorLogin(HookEvent $event): void {
+    public function afterNativeLogin(HookEvent $event): void {
         $session = $this->wire('session');
         $requestedAt = (int) $session->getFor($this, 'administratorLogin');
-        if (!$requestedAt) return;
-        $session->removeFor($this, 'administratorLogin');
-        if ($requestedAt < time() - 900) return;
-        $event->return = $this->homeUrl() . ($this->wire('user')->isSuperuser() ? 'appearance/' : 'administration/');
+        if ($requestedAt) {
+            $session->removeFor($this, 'administratorLogin');
+            if ($requestedAt >= time() - 900) {
+                $event->return = $this->homeUrl() . ($this->wire('user')->isSuperuser() ? 'appearance/' : 'administration/');
+                return;
+            }
+        }
+        if (!$this->isOperator()) return;
+
+        $page = $this->wire('page');
+        if (!$page instanceof Page || !$page->template || $page->template->name !== 'admin') return;
+
+        $rootId = (int) $this->wire('config')->adminRootPageID;
+        $loginId = (int) $this->wire('config')->loginPageID;
+        if (!in_array((int) $page->id, [$rootId, $loginId], true)) return;
+
+        // Preserve the deep link when native login chose an authorized destination.
+        $target = (string) $session->getFor($event->object, 'afterLoginUrl');
+        $targetId = (int) $session->getFor($event->object, 'afterLoginPageId');
+        // Custom login destinations can be supplied by other modules.
+        $returnsToEntry = $target !== '' && $target === $event->return && in_array($targetId, [$rootId, $loginId], true);
+        if (!$returnsToEntry && !preg_match('~^\./(?:\?|$)~', (string) $event->return)) return;
+
+        $event->return = $this->homeUrl();
     }
 
     /** Change only the signed-in superuser's preference; never elevate a role. */

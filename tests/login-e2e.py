@@ -86,13 +86,14 @@ class LoginE2E(unittest.TestCase):
         self.assertTrue('id="ProcessLoginForm"' not in html, 'Session returned to login')
         self.assertTrue('ws-account-name' in html, 'Authenticated shell is missing')
 
-    def login(self, user, password):
-        path = self.admin + 'login/'
+    def login(self, user, password, path=None):
+        path = path or self.admin + 'login/'
         for attempt in range(2):
-            fields = Markup(self.request(path)[2]).fields
+            _, _, login_form, login_url = self.request(path)
+            fields = Markup(login_form).fields
             self.assertTrue(any(name.startswith('TOKEN') for name in fields), 'Native CSRF token missing')
             fields.update(login_name=user, login_pass=password, login_submit=fields.get('login_submit') or 'Login')
-            response = self.request(path, fields)[2]
+            response = self.request(login_url, fields)[2]
             delay = re.search(r'Please wait at least (\d+) seconds before attempting another login', response)
             if not delay or attempt == 1 or int(delay.group(1)) >= 30:
                 return response
@@ -119,8 +120,9 @@ class LoginE2E(unittest.TestCase):
         password = os.environ.get('WORKSPACE_E2E_OPERATOR_PASSWORD')
         if not user or not password:
             self.skipTest('Supply disposable operator fixture credentials through environment')
-        self.assert_authenticated(self.login(user, password))
-        home = self.request(self.admin + 'workspace/')[2]
+        home = self.login(user, password)
+        self.assert_authenticated(home)
+        self.assertRegex(home, r'class="ws-launcher(?:\s|")')
         self.assertIn(self.admin + 'workspace/password/', home)
         self.assertNotIn(self.admin + 'access/users/', home)
         apps = Markup(home).apps
@@ -172,6 +174,10 @@ class LoginE2E(unittest.TestCase):
                 self.assertIn('Your password was changed.', restored, 'Fixture password was not restored')
         self.request(self.admin + 'login/logout/')
         self.assertIn('id="ProcessLoginForm"', self.request(self.admin + 'workspace/')[2])
+        self.cookies.clear()
+        linked_app = self.login(user, password, apps[0])
+        self.assert_authenticated(linked_app)
+        self.assertNotRegex(linked_app, r'class="ws-launcher(?:\s|")')
 
     def test_superuser_can_open_native_user_creation_from_workspace(self):
         user = os.environ.get('WORKSPACE_E2E_USER')
@@ -228,8 +234,7 @@ class LoginE2E(unittest.TestCase):
 
             employee = LoginE2E()
             employee.setUp()
-            employee.assert_authenticated(employee.login(employee_name, initial_password))
-            home = employee.request(self.admin + 'workspace/')[2]
+            home = employee.login(employee_name, initial_password, self.admin)
             employee.assert_authenticated(home)
             self.assertTrue(Markup(home).apps, 'Employee role has no available apps')
             changed = employee.submit_password(initial_password, new_password, new_password)

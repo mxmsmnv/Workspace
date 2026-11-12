@@ -2,6 +2,12 @@
 
 All notable changes to Workspace are documented here.
 
+## Unreleased
+
+### Fixed
+
+- Open the launcher after a Workspace operator signs in through the native admin entry.
+
 ## [1.0.1] - 2026-11-04
 
 ### Fixed
