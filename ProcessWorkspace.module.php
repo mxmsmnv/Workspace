@@ -118,6 +118,7 @@ class ProcessWorkspace extends Process {
         $password->attr('name', 'pass');
         $password->set('requireOld', InputfieldPassword::requireOldYes);
         $password->required = true;
+        $password->collapsed = Inputfield::collapsedNo;
 
         $form = $modules->get('InputfieldForm');
         $form->attr('method', 'post');
